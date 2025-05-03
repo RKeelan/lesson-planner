@@ -1,9 +1,24 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 function App() {
   const [dragActive, setDragActive] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Initialize the PDF worker
+    const worker = new Worker(new URL("./worker/pdfWorker.ts", import.meta.url), { type: "module" })
+    
+    // Listen for messages from the worker
+    worker.addEventListener('message', (event) => {
+      console.log('Message from worker:', event.data)
+    })
+    
+    // Clean up the worker when component unmounts
+    return () => {
+      worker.terminate()
+    }
+  }, [])
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
