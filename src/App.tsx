@@ -8,6 +8,7 @@ function App() {
   const [markdownContent, setMarkdownContent] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const workerRef = useRef<Worker | null>(null)
+  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
   useEffect(() => {
     // Initialize the PDF worker
@@ -79,6 +80,12 @@ function App() {
   const processFile = (file: File) => {
     if (!workerRef.current) {
       setError('PDF processing is not available')
+      return
+    }
+    
+    // Check file size
+    if (file.size > MAX_FILE_SIZE) {
+      setError(`File too large. Maximum size is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`)
       return
     }
     
