@@ -67,7 +67,7 @@ export function initGoogleAuth(): Promise<void> {
         } else {
           localStorage.removeItem(TOKEN_KEY);
         }
-      } catch (e) {
+      } catch {
         localStorage.removeItem(TOKEN_KEY);
       }
     }

@@ -4,7 +4,7 @@
 declare const self: Worker;
 
 interface PyodideInterface {
-  runPythonAsync: (code: string) => Promise<any>;
+  runPythonAsync: <T>(code: string) => Promise<T>;
   loadPackage: (packageName: string | string[]) => Promise<void>;
   FS: {
     writeFile: (path: string, data: Uint8Array, options?: object) => void;
@@ -79,7 +79,7 @@ async function convertPdfToMarkdown(arrayBuffer: ArrayBuffer): Promise<string> {
     pyodideInstance.FS.writeFile('/tmp/doc.pdf', new Uint8Array(arrayBuffer));
     
     // Run Python code to convert PDF to Markdown
-    const result = await pyodideInstance.runPythonAsync(`
+    const result = await pyodideInstance.runPythonAsync<string>(`
       from markitdown import MarkItDown
       
       # Initialize MarkItDown with all plugins enabled
