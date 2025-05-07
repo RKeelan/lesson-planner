@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { initGoogleAuth } from './services/googleAuth'
+import GoogleAuthButton from './components/GoogleAuthButton'
 import './App.css'
 
 function App() {
@@ -39,6 +41,11 @@ function App() {
         setError(`Python environment error: ${event.data.error}`)
         setIsProcessing(false)
       }
+    })
+    
+    // Initialize Google Auth
+    initGoogleAuth().catch(err => {
+      console.error("Failed to initialize Google Auth:", err)
     })
     
     // Clean up the worker when component unmounts
@@ -123,6 +130,9 @@ function App() {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center p-6 overflow-hidden">
+      <div className="absolute top-6 right-6">
+        <GoogleAuthButton />
+      </div>
       <div className="flex gap-12 flex-col md:flex-row">
         {/* Left pane - Drag-and-drop zone */}
         <div 
