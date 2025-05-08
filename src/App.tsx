@@ -11,7 +11,6 @@ function App() {
   const [manualMarkdown, setManualMarkdown] = useState('')
   const [templateID, setTemplateID] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const workerRef = useRef<Worker | null>(null)
   const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -49,14 +48,6 @@ function App() {
     initGoogleAuth().catch(err => {
       console.error("Failed to initialize Google Auth:", err)
     })
-
-    // Check if user is authenticated
-    const checkAuthentication = () => {
-      const token = localStorage.getItem('google_auth_token')
-      setIsAuthenticated(!!token)
-    }
-
-    checkAuthentication()
     
     // Clean up the worker when component unmounts
     return () => {
@@ -245,17 +236,11 @@ function App() {
               <Button
                 className="w-full text-black"
                 size="lg"
-                variant={isAuthenticated ? "default" : "secondary"}
-                disabled={!isAuthenticated}
+                variant="default"
                 onClick={handleGenerateSlides}
               >
                 Generate Slides
               </Button>
-              {!isAuthenticated && (
-                <p className="text-sm text-red-500 mt-2">
-                  You must sign in with Google first to generate slides
-                </p>
-              )}
               {error && (
                 <p className="text-sm text-red-500 mt-2">{error}</p>
               )}
