@@ -1,0 +1,1 @@
+The contents of md2glides forked from [md2googleslides](https://github.com/googleworkspace/md2googleslides). I have reproduced the original license in this folder

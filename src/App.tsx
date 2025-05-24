@@ -1,16 +1,98 @@
 import { getAccessToken } from './services/googleAuth'
 import { useEffect, useRef, useState } from 'react'
-import { initGoogleAuth } from './services/googleAuth'
+import { initGoogleAuth, signOut } from './services/googleAuth'
 import { Button } from './components/ui/button'
+import { generateSlides } from './services/slidesService'
 import './App.css'
 
 function App() {
   const [dragActive, setDragActive] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [manualMarkdown, setManualMarkdown] = useState('')
-  const [templateID, setTemplateID] = useState('')
+  const [isGeneratingSlides, setIsGeneratingSlides] = useState(false)
+  const [manualMarkdown, setManualMarkdown] = useState(
+`# This is a title slide
+
+## By R. Keelan
+
+---
+
+# This is a section title
+
+## With a subtitle
+
+---
+
+# Section title & body slide
+
+## This is a subtitle
+
+This is the body
+
+---
+
+# Title & body slide
+
+This is the slide body.
+
+---
+
+# This is the main point {.big}
+
+---
+
+100% {.big}
+
+This is the body
+
+---
+
+# Two column layout
+
+This is the left column
+
+{.column}
+
+This is the right column
+
+---
+
+# Formatting
+
+**Bold**, *italics*, and ~~strikethrough~~ may be used.
+
+Ordered lists:
+1. Item 1
+1. Item 2
+1. Item 2.1
+
+Unordered lists:
+* Item 1
+* Item 2
+* Item 2.1
+
+---
+
+# Emoji
+
+## I :heart: cats
+
+:heart_eyes_cat:
+
+---
+
+# Tables
+
+Animal | Number
+-------|--------
+Fish   | 142 million
+Cats   | 88 million
+Dogs   | 75 million
+Birds  | 16 million
+`)
+  const [templateInput, setTemplateInput] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const workerRef = useRef<Worker | null>(null)
   const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -33,6 +115,7 @@ function App() {
         if (event.data.success) {
           setManualMarkdown(event.data.markdown) // Set the converted markdown directly to the textarea
           setError(null)
+          setSuccess('Conversion successful!')
         } else {
           setError(`Conversion failed: ${event.data.error}`)
         }
@@ -124,20 +207,42 @@ function App() {
     setFileName(null)
     setManualMarkdown('')
     setError(null)
+    setSuccess(null)
+  }
+
+  const extractTemplateIdFromUrl = (url: string): string => {
+    // If it's already just an ID (no slashes), return as is
+    if (!url.includes('/')) return url;
+    
+    // Try to extract ID from Google Slides URL format: https://docs.google.com/presentation/d/PRESENTATION_ID/edit
+    const match = url.match(/\/presentation\/d\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : url;
   }
 
   const handleGenerateSlides = async () => {
     try {
-      const token = await getAccessToken()
-      // Here you would implement the call to generate slides using the token
-      console.log('Generate slides with token:', token)
-      console.log('Using markdown:', manualMarkdown)
-      console.log('Using template ID:', templateID || 'none')
+      setIsGeneratingSlides(true);
+      setError(null);
+      setSuccess(null);
+
+      const templateID = extractTemplateIdFromUrl(templateInput);
+      const presentationId = await generateSlides(
+        manualMarkdown,
+        templateID || undefined
+      );
+
+      // Open the presentation in a new tab
+      window.open(`https://docs.google.com/presentation/d/${presentationId}/edit`, '_blank');
+      
+      // Show success message
+      setSuccess('Slides generated successfully!');
     } catch (error) {
-      console.error('Error generating slides:', error)
-      setError('Failed to generate slides. Please try again.')
+      console.error('Error generating slides:', error);
+      setError('Failed to generate slides. Please try again.');
+    } finally {
+      setIsGeneratingSlides(false);
     }
-  }
+  };
 
   // Common box styles for the left pane
   const leftBoxClasses = "w-[40rem] h-[40rem] rounded-lg shadow-sm flex items-center justify-center bg-white"
@@ -148,6 +253,18 @@ function App() {
   return (
     <div className="h-screen w-screen flex items-center justify-center p-6 overflow-hidden">
       <div className="flex flex-col w-full max-w-[95rem]">
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => {
+              signOut();
+              window.location.reload();
+            }}
+          >
+            Sign Out
+          </Button>
+        </div>
         <div className="flex gap-8 flex-col md:flex-row">
           {/* Left pane - Drag-and-drop zone */}
           <div 
@@ -215,34 +332,46 @@ function App() {
                 placeholder="Enter your markdown content here..."
                 value={manualMarkdown}
                 onChange={(e) => setManualMarkdown(e.target.value)}
+                disabled={isGeneratingSlides}
               />
             </div>
             
             <div className="mb-3 flex-shrink-0 w-full">
               <label htmlFor="templateID" className="block text-sm font-medium text-gray-700 mb-1">
-                Template ID (optional)
+                Template Slides URL (optional)
               </label>
               <input
                 id="templateID"
                 type="text"
                 className="w-full p-3 border border-gray-300 rounded-md"
-                placeholder="Enter template presentation ID"
-                value={templateID}
-                onChange={(e) => setTemplateID(e.target.value)}
+                placeholder="Paste Google Slides URL or enter template ID"
+                value={templateInput}
+                onChange={(e) => setTemplateInput(e.target.value)}
+                disabled={isGeneratingSlides}
               />
             </div>
             
             <div className="flex-shrink-0 w-full">
-              <Button
-                className="w-full text-black"
-                size="lg"
-                variant="default"
-                onClick={handleGenerateSlides}
-              >
-                Generate Slides
-              </Button>
+              {isGeneratingSlides ? (
+                <div className="flex flex-col items-center justify-center py-4">
+                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-gray-500 mt-2">Generating slides...</p>
+                </div>
+              ) : (
+                <Button
+                  className="w-full text-black"
+                  size="lg"
+                  variant="default"
+                  onClick={handleGenerateSlides}
+                >
+                  Generate Slides
+                </Button>
+              )}
               {error && (
                 <p className="text-sm text-red-500 mt-2">{error}</p>
+              )}
+              {success && (
+                <p className="text-sm text-green-600 mt-2">{success}</p>
               )}
             </div>
           </div>
