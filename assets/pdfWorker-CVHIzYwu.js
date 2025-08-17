@@ -3,7 +3,7 @@
       
       # Install local markitdown package
       await micropip.install([
-        '/markitdown-0.1.1-py3-none-any.whl',
+        './markitdown-0.1.1-py3-none-any.whl',
         'pdfminer.six',])
       
       try:
