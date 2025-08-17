@@ -14,7 +14,7 @@ export async function generateSlides(
       try {
         // Try to copy presentation (requires drive.file permission)
         generator = await SlideGenerator.copyPresentation(token, 'Lesson Plan', templateId);
-      } catch (error) {
+      } catch (_error) {
         console.warn('Could not copy presentation template (missing Drive permissions). Creating new presentation instead.');
         // Fallback to creating a new presentation
         generator = await SlideGenerator.newPresentation(token, 'Lesson Plan');

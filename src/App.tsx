@@ -1,4 +1,3 @@
-import { getAccessToken } from './services/googleAuth'
 import { useEffect, useRef, useState } from 'react'
 import { initGoogleAuth, signOut } from './services/googleAuth'
 import { Button } from './components/ui/button'

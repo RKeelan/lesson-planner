@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'vitest'
 import { Context } from './env'
-import { SlideDefinition, TextDefinition, StyleDefinition } from '../slides'
+import { StyleDefinition } from '../slides'
 
 describe('Context class', () => {
   let context: Context

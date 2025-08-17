@@ -222,10 +222,34 @@ Lint and format code:
 npm run lint
 ```
 
+Type checking:
+```bash
+npm run typecheck
+```
+
+Run all checks (lint + typecheck + test):
+```bash
+npm run check-all
+```
+
 Preview production build:
 ```bash
 npm run preview
 ```
+
+### Code Quality
+
+The project includes automated code quality checks:
+
+#### Pre-commit Hooks
+- **Husky**: Automatically runs checks before each commit
+- **lint-staged**: Runs ESLint and TypeScript checking on staged files
+- **Setup**: Pre-commit hooks are automatically installed with `npm install`
+
+#### Quality Scripts
+- `npm run typecheck`: TypeScript type checking without building
+- `npm run check-all`: Comprehensive check (lint + typecheck + test)
+- Pre-commit hooks automatically run `lint-staged` on commit
 
 ### Google Cloud Setup
 
@@ -317,8 +341,7 @@ The application supports rich markdown features for slide generation:
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature-name`
 3. Make your changes and add tests
-4. Ensure all tests pass: `npm test`
-5. Lint your code: `npm run lint`
+4. Run all quality checks: `npm run check-all`
 6. Commit your changes: `git commit -m 'Add feature'`
 7. Push to the branch: `git push origin feature-name`
 8. Submit a pull request

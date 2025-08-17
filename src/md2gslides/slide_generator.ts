@@ -26,10 +26,6 @@ interface Presentation {
   slides?: Array<{objectId: string}>;
 }
 
-interface BatchUpdateResponse {
-  presentationId: string;
-  replies: any[];
-}
 
 /**
  * Generates slides from Markdown or HTML. Requires an authorized
@@ -211,7 +207,7 @@ export default class SlideGenerator {
    *
    * @returns {{requests: Array}}
    */
-  protected createSlides(): {requests: any[]} {
+  protected createSlides(): {requests: unknown[]} {
     debug('Creating slides');
     const batch = {
       requests: [],
@@ -231,7 +227,7 @@ export default class SlideGenerator {
    *
    * @returns {{requests: Array}}
    */
-  protected populateSlides(): {requests: any[]} {
+  protected populateSlides(): {requests: unknown[]} {
     debug('Populating slides');
     const batch = {
       requests: [],
@@ -249,7 +245,7 @@ export default class SlideGenerator {
    * @param batch Batch of operations to execute
    * @returns {Promise.<*>}
    */
-  protected async updatePresentation(batch: {requests: any[]}): Promise<void> {
+  protected async updatePresentation(batch: {requests: unknown[]}): Promise<void> {
     debug('Updating presentation: %O', batch);
     debug('Presentation state: %O', this.presentation);
     assert(this.presentation?.presentationId);

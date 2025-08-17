@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import GenericLayout from './generic_layout'
-import { SlideDefinition, TextDefinition, TableDefinition } from '../slides'
+import { SlideDefinition, TableDefinition } from '../slides'
 import { slides_v1 as SlidesV1 } from 'googleapis'
 
 // Mock the uuid function
@@ -15,12 +16,12 @@ vi.mock('../utils', () => ({
 
 // Mock the presentation helpers
 vi.mock('./presentation_helpers', () => ({
-  findLayoutIdByName: vi.fn((presentation: any, name: string) => {
+  findLayoutIdByName: vi.fn((_presentation: any, name: string) => {
     if (name === 'TITLE') return 'layout-title-id'
     if (name === 'TITLE_AND_BODY') return 'layout-title-body-id'
     return undefined
   }),
-  findPlaceholder: vi.fn((presentation: any, slideId: string, placeholderType: string) => {
+  findPlaceholder: vi.fn((_presentation: any, _slideId: string, placeholderType: string) => {
     if (placeholderType === 'TITLE') {
       return [{ objectId: 'title-placeholder-id' }]
     }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import extractSlides from './extract_slides'
-import { SlideDefinition } from '../slides'
 
 describe('extractSlides function', () => {
   it('should extract simple slide with title', () => {

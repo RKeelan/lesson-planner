@@ -4,6 +4,7 @@ import SlideGenerator from './slide_generator'
 // Mock the uuid function to return predictable IDs
 vi.mock('./utils', () => ({
   uuid: vi.fn(() => 'test-slide-1'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   assert: vi.fn((condition: any, message?: string) => {
     if (!condition) {
       throw new Error(message || 'Assertion failed')
@@ -86,7 +87,7 @@ describe('SlideGenerator class', () => {
         json: async () => ({ presentationId: 'test-presentation-id', replies: [] })
       })
 
-      const generator = await SlideGenerator.newPresentation('test-token', 'Test Presentation')
+      await SlideGenerator.newPresentation('test-token', 'Test Presentation')
       
       expect(mockFetch).toHaveBeenCalledTimes(2)
       

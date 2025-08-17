@@ -30,7 +30,7 @@ Object.defineProperty(window, 'Worker', {
 // Mock URL constructor for worker - create a proper constructor
 class MockURL {
   href: string
-  constructor(url: string, base?: string) {
+  constructor(url: string, _base?: string) {
     this.href = url
   }
 }

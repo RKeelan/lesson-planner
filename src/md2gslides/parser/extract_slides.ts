@@ -14,7 +14,7 @@
 
 import Debug from 'debug';
 import extend from 'extend';
-import MarkdownIt from 'markdown-it';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Token = any;
 import {parseFragment} from 'parse5';
 import {SlideDefinition, StyleDefinition} from '../slides';
@@ -52,6 +52,7 @@ function hasClass(token: Token, cls: string): boolean {
 function processMarkdownToken(token: Token, context: Context): void {
   debug('Token: %O', token);
   if (token.type === 'inline' && token.children) {
+    // Inline tokens are processed by their specific rules
   }
   const rule = ruleSet[token.type];
   if (rule) {
@@ -94,7 +95,7 @@ inlineTokenRules['heading_open'] = (token, context) => {
   context.startStyle(style); // TODO - Better style for inline headers
 };
 
-inlineTokenRules['heading_close'] = (token, context) => context.endStyle();
+inlineTokenRules['heading_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['inline'] = (token, context) => {
   if (!token.children) {
@@ -185,7 +186,7 @@ inlineTokenRules['paragraph_open'] = (token, context) => {
   }
 };
 
-inlineTokenRules['paragraph_close'] = (token, context) => {
+inlineTokenRules['paragraph_close'] = (_token, context) => {
   if (context.markerParagraph) {
     context.markerParagraph = false;
   } else {
@@ -209,21 +210,21 @@ inlineTokenRules['em_open'] = (token, context) => {
   context.startStyle(style);
 };
 
-inlineTokenRules['em_close'] = (token, context) => context.endStyle();
+inlineTokenRules['em_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['s_open'] = (token, context) => {
   const style = applyTokenStyle(token, {strikethrough: true});
   context.startStyle(style);
 };
 
-inlineTokenRules['s_close'] = (token, context) => context.endStyle();
+inlineTokenRules['s_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['strong_open'] = (token, context) => {
   const style = applyTokenStyle(token, {bold: true});
   context.startStyle(style);
 };
 
-inlineTokenRules['strong_close'] = (token, context) => context.endStyle();
+inlineTokenRules['strong_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['link_open'] = (token, context) => {
   const style = applyTokenStyle(token, {
@@ -234,7 +235,7 @@ inlineTokenRules['link_open'] = (token, context) => {
   context.startStyle(style);
 };
 
-inlineTokenRules['link_close'] = (token, context) => context.endStyle();
+inlineTokenRules['link_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['code_inline'] = (token, context) => {
   const style = applyTokenStyle(token, {fontFamily: 'Courier New'});
@@ -243,10 +244,10 @@ inlineTokenRules['code_inline'] = (token, context) => {
   context.endStyle();
 };
 
-inlineTokenRules['hardbreak'] = (token, context) =>
+inlineTokenRules['hardbreak'] = (_token, context) =>
   context.appendText('\u000b');
 
-inlineTokenRules['softbreak'] = (token, context) => context.appendText(' ');
+inlineTokenRules['softbreak'] = (_token, context) => context.appendText(' ');
 
 inlineTokenRules['blockquote_open'] = (token, context) => {
   // TODO - More interesting styling for block quotes
@@ -254,7 +255,7 @@ inlineTokenRules['blockquote_open'] = (token, context) => {
   context.startStyle(style);
 };
 
-inlineTokenRules['blockquote_close'] = (token, context) => context.endStyle();
+inlineTokenRules['blockquote_close'] = (_token, context) => context.endStyle();
 
 inlineTokenRules['emoji'] = (token, context) =>
   context.appendText(token.content);
@@ -306,7 +307,7 @@ inlineTokenRules['list_item_open'] = (token, context) => {
   context.appendText(new Array(context.list.depth + 1).join('\t'));
 };
 
-inlineTokenRules['list_item_close'] = (token, context) => context.endStyle();
+inlineTokenRules['list_item_close'] = (_token, context) => context.endStyle();
 
 // Additional rules for processing the entire document
 // Extends inline rules with support for additional
@@ -365,7 +366,7 @@ fullTokenRules['html_block'] = (token, context) => {
   ruleSet = fullTokenRules;
 };
 
-fullTokenRules['hr'] = (token, context) => {
+fullTokenRules['hr'] = (_token, context) => {
   context.endSlide();
   context.startSlide();
 };
@@ -380,7 +381,7 @@ fullTokenRules['table_open'] = (token, context) => {
   };
 };
 
-fullTokenRules['table_close'] = (token, context) => {
+fullTokenRules['table_close'] = (_token, context) => {
   assert(context.currentSlide);
   assert(context.table);
   context.currentSlide.tables.push(context.table);
@@ -399,7 +400,7 @@ fullTokenRules['tr_open'] = (token, context) => {
   context.row = [];
 };
 
-fullTokenRules['tr_close'] = (token, context) => {
+fullTokenRules['tr_close'] = (_token, context) => {
   assert(context.table);
   const row = context.row;
   context.table.cells.push(row);
@@ -436,7 +437,7 @@ fullTokenRules['th_open'] = (token, context) => {
   context.startTextBlock();
 };
 
-fullTokenRules['td_close'] = fullTokenRules['th_close'] = (token, context) => {
+fullTokenRules['td_close'] = fullTokenRules['th_close'] = (_token, context) => {
   assert(context.text);
   context.endStyle();
   context.row.push(context.text);
