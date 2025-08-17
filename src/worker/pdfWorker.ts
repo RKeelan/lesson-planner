@@ -37,13 +37,50 @@ async function initializePyodide() {
     // Load the micropip package first
     await pyodideInstance.loadPackage('micropip');
     
+    // Construct the wheel file URL based on the worker's origin
+    // For GitHub Pages, extract the repository name from the current path
+    const isGitHubPages = location.hostname.includes('github.io');
+    let basePath = '';
+    if (isGitHubPages) {
+      // Extract repo name from pathname (e.g., '/lesson-planner/' -> '/lesson-planner')
+      const pathSegments = location.pathname.split('/').filter(Boolean);
+      basePath = pathSegments.length > 0 ? `/${pathSegments[0]}` : '';
+    }
+    const wheelUrl = `${location.origin}${basePath}/markitdown-0.1.1-py3-none-any.whl`;
+    
+    // Debug: Check wheel file availability
+    console.log(`Worker: Attempting to install wheel from: ${wheelUrl}`);
+    
+    try {
+      // First check if wheel file is accessible
+      const response = await fetch(wheelUrl);
+      console.log(`Worker: Wheel file fetch status: ${response.status}`);
+      console.log(`Worker: Wheel file content-type: ${response.headers.get('content-type')}`);
+      console.log(`Worker: Wheel file size: ${response.headers.get('content-length')} bytes`);
+      
+      if (!response.ok) {
+        throw new Error(`Wheel file not accessible: ${response.status} ${response.statusText}`);
+      }
+    } catch (fetchError) {
+      console.error(`Worker: Failed to fetch wheel file: ${fetchError}`);
+      throw fetchError;
+    }
+    
     await pyodideInstance.runPythonAsync(`
       import micropip
       
-      # Install local markitdown package
-      await micropip.install([
-        '/markitdown-0.1.1-py3-none-any.whl',
-        'pdfminer.six',])
+      print(f"About to install wheel from: ${wheelUrl}")
+      
+      # Install local markitdown package with absolute URL
+      try:
+        await micropip.install([
+          '${wheelUrl}',
+          'pdfminer.six',])
+        print("Packages installed successfully")
+      except Exception as install_error:
+        print(f"Installation error: {install_error}")
+        print(f"Error type: {type(install_error).__name__}")
+        raise install_error
       
       try:
           import markitdown
