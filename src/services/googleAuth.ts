@@ -5,6 +5,14 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/presentations https://www.googleapis.com/auth/drive.file';
 const TOKEN_KEY = 'google_auth_token';
 
+// Debug logging for client ID
+console.log('Google Auth Debug:', {
+  CLIENT_ID,
+  env: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+  mode: import.meta.env.MODE,
+  prod: import.meta.env.PROD
+});
+
 /**
  * Declare types for Google Identity Services
  */
@@ -76,6 +84,13 @@ export function initGoogleAuth(): Promise<void> {
     const checkGsiLoaded = () => {
       if (window.google?.accounts?.oauth2) {
         // Initialize token client
+        console.log('Initializing token client with CLIENT_ID:', CLIENT_ID);
+        
+        if (!CLIENT_ID || CLIENT_ID === 'your_google_client_id_here') {
+          console.error('Google Client ID is not properly configured!', CLIENT_ID);
+          throw new Error('Google Client ID is not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.');
+        }
+        
         tokenClient = window.google.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES,
