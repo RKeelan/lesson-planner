@@ -180,3 +180,109 @@ This architecture ensures smooth user experience by preventing UI blocking durin
 4. **Slide Creation**: Systematic creation of slides using Google Slides API batch operations
 5. **Content Population**: Population of slide elements with parsed markdown content
 6. **Result Delivery**: Return of presentation ID and automatic browser opening of generated slides
+
+## Tasks
+### Phase 2: Current Tasks (In Progress)
+
+#### 2-E-1: Add status bar component
+- **File**: `src/components/StatusBar.tsx` (new)
+- **Task**: Create status bar showing 'Google: signed in as <email>' or 'Google: not connected'
+- **Acceptance**: Status updates when user signs in/out
+
+#### 2-E-2: Implement toast notifications
+- **Dependencies**: Install react-hot-toast or similar
+- **Task**: Add success/error toasts for slide generation
+- **Acceptance**: User sees confirmation when slides are generated successfully
+
+#### 2-E-3: Add shadcn/ui modals
+- **Dependencies**: Install @radix-ui/react-dialog
+- **Task**: Replace any existing modals with shadcn/ui Dialog components
+- **Acceptance**: Consistent modal styling and behavior
+
+### Phase 3: LLM Integration
+
+#### 3-A-1: Install Vercel AI SDK
+- **Command**: `npm install ai @ai-sdk/openai @ai-sdk/anthropic @ai-sdk/google`
+- **Task**: Add Vercel AI SDK for unified LLM provider support
+- **Acceptance**: Dependencies installed and properly configured
+
+#### 3-A-2: Create key manager modal
+- **File**: `src/components/KeyManagerModal.tsx` (new)
+- **Task**: Modal with provider dropdown (OpenAI, Anthropic, Google), API key input, remember checkbox
+- **Acceptance**: Modal saves keys to localStorage/sessionStorage as `${PROVIDER}_API_KEY`
+
+#### 3-A-3: Add key manager trigger
+- **File**: `src/App.tsx`
+- **Task**: Add key icon in header that opens KeyManagerModal
+- **Acceptance**: Clicking key icon opens modal for API key management
+
+#### 3-B-1: Create LLM service with Vercel AI SDK
+- **File**: `src/services/llmService.ts` (new)
+- **Task**: Implement `callLLM({markdown, instructions}): Promise<string>` using Vercel AI SDK
+- **Acceptance**: Function works with OpenAI, Anthropic, or Google based on available API keys
+
+#### 3-B-2: Add prompt builder
+- **File**: `src/services/llmService.ts`
+- **Task**: Add `buildPrompt(markdown: string, instructions: string): string`
+- **Format**: `${instructions}\n---DOCUMENT START---\n${markdown}`
+- **Acceptance**: Consistent prompt format for all LLM providers
+
+#### 3-C-1: Add teacher instructions UI
+- **File**: `src/App.tsx`
+- **Task**: Add textarea for teacher instructions when PDF is converted
+- **Acceptance**: Instructions input appears after successful PDF processing
+
+#### 3-C-2: Integrate LLM with slide generation
+- **File**: `src/App.tsx`
+- **Task**: Modify Generate Slides to call LLM, then pass result to existing slide generation
+- **Flow**: `markdown + instructions → LLM → enhanced markdown → slides`
+- **Acceptance**: Generate button processes markdown through LLM before creating slides
+
+#### 3-D-1: Add token estimation
+- **Dependencies**: Install tiktoken or similar
+- **File**: `src/services/costEstimator.ts` (new)
+- **Task**: Estimate prompt tokens and costs before LLM calls
+- **Acceptance**: Shows estimated cost before generation
+
+#### 3-D-2: Add cost confirmation modal
+- **File**: `src/components/CostConfirmationModal.tsx` (new)
+- **Task**: Show confirmation if estimated cost > $0.50
+- **Acceptance**: User must confirm expensive operations
+
+#### 3-D-3: Display cost estimates
+- **File**: `src/App.tsx`
+- **Task**: Show 'Estimated cost: $X.XX' under Generate button
+- **Acceptance**: Real-time cost updates based on content length
+
+### Phase 4: Post-MVP Enhancements (Future)
+
+#### 4-A: Image placeholder system
+- **Task**: Support `![unsplash:keyword]` syntax for automatic image insertion
+- **Integration**: Unsplash API for keyword-based image search
+
+#### 4-B: Document chunking
+- **Task**: Handle documents > 15k tokens with chunking and summarization
+- **Implementation**: Split large documents and process in chunks
+
+#### 4-C: Template library
+- **Task**: Multi-provider slide templates with dropdown selection
+- **Features**: Curated template IDs for different presentation types
+
+#### 4-D: Caching system
+- **Task**: Service Worker cache for `markdown ↔ deckID` mapping
+- **Benefit**: Prevent duplicate generation for same content
+
+### Technical Debt & Build Issues
+
+#### BUILD-1: Pyodide Vite configuration
+- **Condition**: If build errors occur with Pyodide
+- **Tasks**: 
+  - Install `vite-plugin-wasm` and `vite-plugin-top-level-await`
+  - Add plugins to `vite.config.ts`
+  - Set `moduleResolution: 'bundler'` in tsconfig
+  - Add `define: { 'process.env': {} }` to Vite config
+
+### Legend
+- ✅ Completed
+- 🔄 In Progress  
+- 📋 Pending
