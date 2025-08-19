@@ -321,4 +321,33 @@ And a table:
     expect(slide.tables).toHaveLength(1)
     expect(slide.notes).toContain('This is a note')
   })
+
+  it('should handle slide with body text and table (bug reproduction)', () => {
+    const markdown = `# Tables
+
+With body text
+
+Animal | Number
+-------|--------
+Fish   | 142 million
+Cats   | 88 million
+Dogs   | 75 million
+Birds  | 16 million`
+
+    const slides = extractSlides(markdown)
+    
+    expect(slides).toHaveLength(1)
+    const slide = slides[0]
+    
+    expect(slide.title?.rawText).toBe('Tables')
+    expect(slide.bodies).toHaveLength(1)
+    expect(slide.bodies[0].text?.rawText).toContain('With body text')
+    expect(slide.tables).toHaveLength(1)
+    
+    const table = slide.tables[0]
+    expect(table.rows).toBe(5) // header + 4 data rows
+    expect(table.columns).toBe(2)
+    expect(table.cells[0][0].rawText).toContain('Animal')
+    expect(table.cells[1][0].rawText).toContain('Fish')
+  })
 }) 

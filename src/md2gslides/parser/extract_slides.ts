@@ -372,6 +372,17 @@ fullTokenRules['hr'] = (_token, context) => {
 };
 
 fullTokenRules['table_open'] = (token, context) => {
+  assert(context.currentSlide);
+  
+  // Save any existing text to bodies before starting table processing
+  if (context.text && context.text.rawText.trim().length) {
+    const body = {
+      text: context.text,
+    };
+    context.currentSlide.bodies.push(body);
+    context.startTextBlock();
+  }
+  
   const style = applyTokenStyle(token, {});
   context.startStyle(style);
   context.table = {
