@@ -2,8 +2,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
 // Canvas dimensions with bleed area for better PDF generation
-const CANVAS_WIDTH = 800  // A4 width (794px) + 56px bleed
-const CANVAS_HEIGHT = 1100 // A4 height (1123px) + 77px bleed
+const CANVAS_WIDTH = 800
+const CANVAS_HEIGHT = 1100
 
 export async function generatePDFFromHTML(htmlContent: string, filename: string = 'worksheet.pdf'): Promise<void> {
   try {
@@ -91,12 +91,12 @@ export async function generatePDFFromHTML(htmlContent: string, filename: string 
     const isLandscape = canvas.width > canvas.height
     const orientation = isLandscape ? 'l' : 'p'
     
-    // Set PDF dimensions based on orientation
-    const pageWidthMM = isLandscape ? 297 : 210  // A4 landscape: 297mm wide, portrait: 210mm wide
-    const pageHeightMM = isLandscape ? 210 : 297 // A4 landscape: 210mm tall, portrait: 297mm tall
+    // Set PDF dimensions based on orientation (US Letter: 216 x 279 mm)
+    const pageWidthMM = isLandscape ? 279 : 216
+    const pageHeightMM = isLandscape ? 216 : 279
     
     // Create PDF with correct orientation
-    const pdf = new jsPDF(orientation, 'mm', 'a4')
+    const pdf = new jsPDF(orientation, 'mm', 'letter')
     
     // Use full page dimensions - no scaling, no centering, no borders
     const imgWidth = pageWidthMM
