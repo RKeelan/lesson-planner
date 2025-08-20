@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { initGoogleAuth, signOut } from './services/googleAuth'
 import { Button } from './components/ui/button'
 import { generateSlides } from './services/slidesService'
+import { generatePDFFromHTML } from './services/pdfService'
 import { prompts } from './utils/prompts'
 import './App.css'
 
@@ -10,6 +11,7 @@ function App() {
   const [fileName, setFileName] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false)
+  const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false)
   const [manualMarkdown, setManualMarkdown] = useState(
 `# This is a title slide
 
@@ -93,8 +95,64 @@ Birds  | 16 million
   const [templateInput, setTemplateInput] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [worksheetError, setWorksheetError] = useState<string | null>(null)
+  const [worksheetSuccess, setWorksheetSuccess] = useState<string | null>(null)
   const [lessonPlanPrompt, setLessonPlanPrompt] = useState(prompts.lessonPlan)
   const [worksheetPrompt, setWorksheetPrompt] = useState(prompts.worksheet)
+  const [markdownLessonPlanFilename, setMarkdownLessonPlanFilename] = useState('Lesson Plan')
+  const [htmlCssWorksheetFilename, setHtmlCssWorksheetFilename] = useState('Worksheet')
+  const [htmlCssWorksheet, setHtmlCssWorksheet] = useState(
+`<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson Worksheet</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .worksheet-header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .question {
+            margin: 20px 0;
+            padding: 10px;
+            border-left: 3px solid #007bff;
+        }
+        .answer-space {
+            border-bottom: 1px solid #ccc;
+            min-height: 30px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="worksheet-header">
+        <h1>Lesson Worksheet</h1>
+        <p>Name: _________________ Date: _________</p>
+    </div>
+    
+    <div class="question">
+        <h3>Question 1:</h3>
+        <p>What is the main topic of today's lesson?</p>
+        <div class="answer-space"></div>
+    </div>
+    
+    <div class="question">
+        <h3>Question 2:</h3>
+        <p>List three key points you learned:</p>
+        <div class="answer-space"></div>
+        <div class="answer-space"></div>
+        <div class="answer-space"></div>
+    </div>
+</body>
+</html>`)
   const workerRef = useRef<Worker | null>(null)
   const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
@@ -230,7 +288,8 @@ Birds  | 16 million
       const templateID = extractTemplateIdFromUrl(templateInput);
       const presentationId = await generateSlides(
         manualMarkdown,
-        templateID || undefined
+        templateID || undefined,
+        markdownLessonPlanFilename
       );
 
       // Open the presentation in a new tab
@@ -243,6 +302,29 @@ Birds  | 16 million
       setError('Failed to generate slides. Please try again.');
     } finally {
       setIsGeneratingSlides(false);
+    }
+  };
+
+  const handleGenerateWorksheet = async () => {
+    try {
+      setIsGeneratingWorksheet(true);
+      setWorksheetError(null);
+      setWorksheetSuccess(null);
+
+      // Use user-defined filename or fallback to default
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+      const baseFilename = htmlCssWorksheetFilename.trim() || 'worksheet';
+      const filename = `${baseFilename}-${timestamp}.pdf`;
+
+      await generatePDFFromHTML(htmlCssWorksheet, filename);
+      
+      // Show success message
+      setWorksheetSuccess('Worksheet PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating worksheet:', error);
+      setWorksheetError('Failed to generate worksheet PDF. Please try again.');
+    } finally {
+      setIsGeneratingWorksheet(false);
     }
   };
 
@@ -265,9 +347,9 @@ Birds  | 16 million
           Sign Out
         </Button>
       </div>
-      {/* 4-Column Layout - With Healthy Padding */}
-      <div className="grid grid-cols-4 gap-6 flex-1 min-h-0">
-          {/* Column 1 - Drag-and-drop zone */}
+      {/* 2x3 Grid Layout - With Healthy Padding */}
+      <div className="grid grid-cols-3 grid-rows-2 gap-6 flex-1 min-h-0">
+          {/* Top Row - Left: Drag-and-drop zone */}
           <div 
             className={`${uploadPaneClasses} transition-all duration-300 ${
               dragActive 
@@ -321,7 +403,7 @@ Birds  | 16 million
             </div>
           </div>
 
-          {/* Column 2 - Lesson Plan Prompt */}
+          {/* Top Row - Center: Lesson Plan Prompt */}
           <div className={textPaneClasses}>
             <label htmlFor="lesson-plan-prompt" className="block text-sm font-medium text-gray-700 mb-3">
               Lesson Plan Prompt
@@ -335,26 +417,16 @@ Birds  | 16 million
             />
           </div>
 
-          {/* Column 3 - Worksheet Prompt */}
-          <div className={textPaneClasses}>
-            <label htmlFor="worksheet-prompt" className="block text-sm font-medium text-gray-700 mb-3">
-              Worksheet Prompt
-            </label>
-            <textarea
-              id="worksheet-prompt"
-              className="w-full h-full p-3 border border-gray-300 rounded-md font-mono text-xs resize-none overflow-auto"
-              placeholder="Enter your worksheet prompt here..."
-              value={worksheetPrompt}
-              onChange={(e) => setWorksheetPrompt(e.target.value)}
-            />
-          </div>
-
-          {/* Column 4 - Markdown content */}
+          {/* Top Row - Right: Markdown Lesson Plan */}
           <div className={textPaneClasses}>
             <div className="flex flex-col h-[calc(100%-9rem)] mb-4 w-full">
-              <label htmlFor="md-input" className="block text-sm font-medium text-gray-700 mb-1 flex-shrink-0">
-                Markdown Content
-              </label>
+              <input
+                type="text"
+                className="block text-sm font-medium text-gray-700 mb-1 flex-shrink-0 px-2 py-1 border border-gray-300 rounded bg-white"
+                value={markdownLessonPlanFilename}
+                onChange={(e) => setMarkdownLessonPlanFilename(e.target.value)}
+                placeholder="Enter filename..."
+              />
               <textarea
                 id="md-input"
                 className="w-full h-full p-3 border border-gray-300 rounded-md font-mono text-xs resize-none overflow-auto"
@@ -401,6 +473,70 @@ Birds  | 16 million
               )}
               {success && (
                 <p className="text-xs text-green-600 mt-1">{success}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Row - Left: Empty for future use */}
+          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
+            <p className="text-sm">Future feature placeholder</p>
+          </div>
+
+          {/* Bottom Row - Center: Worksheet Prompt */}
+          <div className={textPaneClasses}>
+            <label htmlFor="worksheet-prompt" className="block text-sm font-medium text-gray-700 mb-3">
+              Worksheet Prompt
+            </label>
+            <textarea
+              id="worksheet-prompt"
+              className="w-full h-full p-3 border border-gray-300 rounded-md font-mono text-xs resize-none overflow-auto"
+              placeholder="Enter your worksheet prompt here..."
+              value={worksheetPrompt}
+              onChange={(e) => setWorksheetPrompt(e.target.value)}
+            />
+          </div>
+
+          {/* Bottom Row - Right: HTML+CSS Worksheet */}
+          <div className={textPaneClasses}>
+            <div className="flex flex-col h-[calc(100%-4rem)] mb-4 w-full">
+              <input
+                type="text"
+                className="block text-sm font-medium text-gray-700 mb-1 flex-shrink-0 px-2 py-1 border border-gray-300 rounded bg-white"
+                value={htmlCssWorksheetFilename}
+                onChange={(e) => setHtmlCssWorksheetFilename(e.target.value)}
+                placeholder="Enter filename..."
+              />
+              <textarea
+                id="html-css-worksheet"
+                className="w-full h-full p-3 border border-gray-300 rounded-md font-mono text-xs resize-none overflow-auto"
+                placeholder="Enter your HTML+CSS worksheet content here..."
+                value={htmlCssWorksheet}
+                onChange={(e) => setHtmlCssWorksheet(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex-shrink-0 w-full">
+              {isGeneratingWorksheet ? (
+                <div className="flex flex-col items-center justify-center py-2">
+                  <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs text-gray-500 mt-1">Generating PDF...</p>
+                </div>
+              ) : (
+                <Button
+                  className="w-full text-black"
+                  size="sm"
+                  variant="default"
+                  onClick={handleGenerateWorksheet}
+                  disabled={!htmlCssWorksheet.trim()}
+                >
+                  Generate Worksheet
+                </Button>
+              )}
+              {worksheetError && (
+                <p className="text-xs text-red-500 mt-1">{worksheetError}</p>
+              )}
+              {worksheetSuccess && (
+                <p className="text-xs text-green-600 mt-1">{worksheetSuccess}</p>
               )}
             </div>
           </div>
