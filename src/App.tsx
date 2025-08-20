@@ -101,6 +101,7 @@ Birds  | 16 million
   const [worksheetPrompt, setWorksheetPrompt] = useState(prompts.worksheet)
   const [markdownLessonPlanFilename, setMarkdownLessonPlanFilename] = useState('Lesson Plan')
   const [htmlCssWorksheetFilename, setHtmlCssWorksheetFilename] = useState('Worksheet')
+  const [transcribePrompt, setTranscribePrompt] = useState(prompts.transcribe)
   const [htmlCssWorksheet, setHtmlCssWorksheet] = useState(
 `<!DOCTYPE html>
 <html lang="en">
@@ -347,9 +348,33 @@ Birds  | 16 million
           Sign Out
         </Button>
       </div>
-      {/* 2x3 Grid Layout - With Healthy Padding */}
-      <div className="grid grid-cols-3 grid-rows-2 gap-6 flex-1 min-h-0">
-          {/* Top Row - Left: Drag-and-drop zone */}
+      {/* 3x3 Grid Layout - With Healthy Padding */}
+      <div className="grid grid-cols-3 grid-rows-3 gap-6 flex-1 min-h-0">
+          {/* Top Row - Left: Placeholder */}
+          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
+            <p className="text-sm">Future feature placeholder</p>
+          </div>
+
+          {/* Top Row - Center: Transcribe Prompt */}
+          <div className={textPaneClasses}>
+            <label htmlFor="transcribe-prompt" className="block text-sm font-medium text-gray-700 mb-3">
+              Transcribe Prompt
+            </label>
+            <textarea
+              id="transcribe-prompt"
+              className="w-full h-full p-3 border border-gray-300 rounded-md font-mono text-xs resize-none overflow-auto"
+              placeholder="Enter your transcribe prompt here..."
+              value={transcribePrompt}
+              onChange={(e) => setTranscribePrompt(e.target.value)}
+            />
+          </div>
+
+          {/* Top Row - Right: Placeholder */}
+          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
+            <p className="text-sm">Future feature placeholder</p>
+          </div>
+
+          {/* Middle Row - Left: Drag-and-drop zone */}
           <div 
             className={`${uploadPaneClasses} transition-all duration-300 ${
               dragActive 
@@ -403,7 +428,7 @@ Birds  | 16 million
             </div>
           </div>
 
-          {/* Top Row - Center: Lesson Plan Prompt */}
+          {/* Middle Row - Center: Lesson Plan Prompt */}
           <div className={textPaneClasses}>
             <label htmlFor="lesson-plan-prompt" className="block text-sm font-medium text-gray-700 mb-3">
               Lesson Plan Prompt
@@ -417,7 +442,7 @@ Birds  | 16 million
             />
           </div>
 
-          {/* Top Row - Right: Markdown Lesson Plan */}
+          {/* Middle Row - Right: Markdown Lesson Plan */}
           <div className={textPaneClasses}>
             <div className="flex flex-col h-[calc(100%-9rem)] mb-4 w-full">
               <input
@@ -477,7 +502,7 @@ Birds  | 16 million
             </div>
           </div>
 
-          {/* Bottom Row - Left: Empty for future use */}
+          {/* Bottom Row - Left: Placeholder */}
           <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
             <p className="text-sm">Future feature placeholder</p>
           </div>
