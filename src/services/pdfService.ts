@@ -2,8 +2,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
 // Canvas dimensions with bleed area for better PDF generation
-const CANVAS_WIDTH = 800
-const CANVAS_HEIGHT = 1100
+const CANVAS_LONG_DIM = 1100
+const CANVAS_SHORT_DIM = 800
 
 export async function generatePDFFromHTML(htmlContent: string, filename: string = 'worksheet.pdf'): Promise<void> {
   try {
@@ -12,8 +12,8 @@ export async function generatePDFFromHTML(htmlContent: string, filename: string 
     iframe.style.position = 'absolute'
     iframe.style.left = '-9999px'
     iframe.style.top = '0'
-    iframe.style.width = `${CANVAS_WIDTH}px`
-    iframe.style.height = `${CANVAS_HEIGHT}px` 
+    iframe.style.width = `${CANVAS_LONG_DIM}px`
+    iframe.style.height = `${CANVAS_LONG_DIM}px` 
     iframe.style.border = 'none'
     iframe.style.visibility = 'hidden'
     
@@ -74,21 +74,56 @@ export async function generatePDFFromHTML(htmlContent: string, filename: string 
       throw new Error('Could not find body element in iframe')
     }
     
+    // Determine orientation based on .page or .page-container CSS elements
+    const pageContainer = iframeDoc.querySelector('.page-container, .page')
+    if (!pageContainer) {
+      console.error('Could not find .page or .page-container element')
+      document.body.removeChild(iframe)
+      throw new Error('PDF generation aborted: Could not find .page or .page-container element')
+    }
+    
+    const computedStyle = iframe.contentWindow?.getComputedStyle(pageContainer)
+    if (!computedStyle) {
+      console.error('Could not get computed style for page container')
+      document.body.removeChild(iframe)
+      throw new Error('PDF generation aborted: Could not get computed style for page container')
+    }
+    
+    const width = parseFloat(computedStyle.width)
+    const height = parseFloat(computedStyle.height)
+    
+    if (isNaN(width) || isNaN(height)) {
+      console.error('Could not parse width/height from computed style:', { width: computedStyle.width, height: computedStyle.height })
+      document.body.removeChild(iframe)
+      throw new Error('PDF generation aborted: Could not parse width/height from computed style')
+    }
+    
+    const isLandscape = width > height
+    
+    console.log('Detected orientation:', {
+      width,
+      height,
+      isLandscape,
+      orientation: isLandscape ? 'landscape' : 'portrait'
+    })
+    
+    // Set canvas dimensions based on detected orientation
+    const canvasWidth = isLandscape ? CANVAS_LONG_DIM : CANVAS_SHORT_DIM
+    const canvasHeight = isLandscape ? CANVAS_SHORT_DIM : CANVAS_LONG_DIM
+    
     // Generate canvas from the iframe content - capture oversized area with white background
     const canvas = await html2canvas(bodyElement, {
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
       logging: false,
-      width: CANVAS_WIDTH,
-      height: CANVAS_HEIGHT
+      width: canvasWidth,
+      height: canvasHeight
     } as any)
     
     // Remove the temporary iframe
     document.body.removeChild(iframe)
     
-    // Determine orientation based on canvas dimensions
-    const isLandscape = canvas.width > canvas.height
     const orientation = isLandscape ? 'l' : 'p'
     
     // Set PDF dimensions based on orientation (US Letter: 216 x 279 mm)
