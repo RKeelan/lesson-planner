@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { initGoogleAuth, signOut } from './services/googleAuth'
 import { Button } from './components/ui/button'
 import { generateSlides } from './services/slidesService'
-import { generatePDFFromHTML } from './services/pdfService'
+import { generatePNGFromHTML } from './services/pngService'
 import { prompts } from './utils/prompts'
 import './App.css'
 
@@ -315,15 +315,15 @@ Birds  | 16 million
       // Use user-defined filename or fallback to default
       const timestamp = new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
       const baseFilename = htmlCssWorksheetFilename.trim() || 'worksheet';
-      const filename = `${baseFilename}-${timestamp}.pdf`;
+      const filename = `${baseFilename}-${timestamp}.png`;
 
-      await generatePDFFromHTML(htmlCssWorksheet, filename);
+      await generatePNGFromHTML(htmlCssWorksheet, filename);
       
       // Show success message
-      setWorksheetSuccess('Worksheet PDF downloaded successfully!');
+      setWorksheetSuccess('Worksheet PNG downloaded successfully!');
     } catch (error) {
       console.error('Error generating worksheet:', error);
-      setWorksheetError('Failed to generate worksheet PDF. Please try again.');
+      setWorksheetError('Failed to generate worksheet PNG. Please try again.');
     } finally {
       setIsGeneratingWorksheet(false);
     }
@@ -544,7 +544,7 @@ Birds  | 16 million
               {isGeneratingWorksheet ? (
                 <div className="flex flex-col items-center justify-center py-2">
                   <div className="w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-xs text-gray-500 mt-1">Generating PDF...</p>
+                  <p className="text-xs text-gray-500 mt-1">Generating PNG...</p>
                 </div>
               ) : (
                 <Button
