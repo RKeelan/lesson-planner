@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { initGoogleAuth, signOut } from './services/googleAuth'
 import { Button } from './components/ui/button'
 import { generateSlides } from './services/slidesService'
@@ -7,9 +7,7 @@ import { prompts } from './utils/prompts'
 import './App.css'
 
 function App() {
-  const [dragActive, setDragActive] = useState(false)
-  const [fileName, setFileName] = useState<string | null>(null)
-  const [isProcessing, setIsProcessing] = useState(false)
+  const [mode, setMode] = useState<'lesson-plan' | 'worksheet'>('lesson-plan')
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false)
   const [isGeneratingWorksheet, setIsGeneratingWorksheet] = useState(false)
   const [manualMarkdown, setManualMarkdown] = useState(
@@ -154,122 +152,14 @@ Birds  | 16 million
     </div>
 </body>
 </html>`)
-  const workerRef = useRef<Worker | null>(null)
-  const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
   useEffect(() => {
-    // Initialize the PDF worker
-    const worker = new Worker(new URL("./worker/pdfWorker.ts", import.meta.url), { type: "module" })
-    workerRef.current = worker
-    
-    // Listen for messages from the worker
-    worker.addEventListener('message', (event) => {
-      console.log('Message from worker:', event.data)
-      
-      if (event.data === 'pyodide-ready') {
-        console.log('Pyodide is ready for processing')
-      }
-      
-      if (event.data.type === 'conversion-result') {
-        setIsProcessing(false)
-        
-        if (event.data.success) {
-          setManualMarkdown(event.data.markdown) // Set the converted markdown directly to the textarea
-          setError(null)
-          setSuccess('Conversion successful!')
-        } else {
-          setError(`Conversion failed: ${event.data.error}`)
-        }
-      }
-      
-      if (event.data.type === 'pyodide-error') {
-        setError(`Python environment error: ${event.data.error}`)
-        setIsProcessing(false)
-      }
-    })
-    
     // Initialize Google Auth
     initGoogleAuth().catch(err => {
       console.error("Failed to initialize Google Auth:", err)
     })
-    
-    // Clean up the worker when component unmounts
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate()
-      }
-    }
   }, [])
 
-  const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (e.type === "dragenter" || e.type === "dragover") {
-      setDragActive(true)
-    } else if (e.type === "dragleave") {
-      setDragActive(false)
-    }
-  }
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    setError(null)
-    
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const file = e.dataTransfer.files[0]
-      
-      // Check if the file is a PDF
-      if (file.type === 'application/pdf') {
-        processFile(file)
-      } else {
-        setError('Please upload a PDF file')
-      }
-    }
-  }
-  
-  const processFile = (file: File) => {
-    if (!workerRef.current) {
-      setError('PDF processing is not available')
-      return
-    }
-    
-    // Check file size
-    if (file.size > MAX_FILE_SIZE) {
-      setError(`File too large. Maximum size is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`)
-      return
-    }
-    
-    setFileName(file.name)
-    setIsProcessing(true)
-    setManualMarkdown('') // Clear any existing markdown while processing
-    
-    // Send the file to the worker for processing
-    workerRef.current.postMessage({
-      type: 'convert',
-      file: file
-    })
-  }
-  
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0]
-      
-      if (file.type === 'application/pdf') {
-        processFile(file)
-      } else {
-        setError('Please upload a PDF file')
-      }
-    }
-  }
-  
-  const resetState = () => {
-    setFileName(null)
-    setManualMarkdown('')
-    setError(null)
-    setSuccess(null)
-  }
 
   const extractTemplateIdFromUrl = (url: string): string => {
     // If it's already just an ID (no slashes), return as is
@@ -331,12 +221,29 @@ Birds  | 16 million
 
   // Common box styles for grid panes
   const gridPaneClasses = "rounded-lg shadow-sm bg-white border border-gray-300"
-  const uploadPaneClasses = `${gridPaneClasses} flex items-center justify-center`
   const textPaneClasses = `${gridPaneClasses} p-6 overflow-hidden flex flex-col`
 
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden p-6">
-      <div className="flex justify-end mb-4 flex-shrink-0">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
+        <div className="flex gap-1 bg-gray-200 rounded-lg p-1">
+          <Button 
+            variant={mode === 'lesson-plan' ? 'rainbow' : 'rainbow-text'}
+            size="default"
+            className="transition-all duration-200"
+            onClick={() => setMode('lesson-plan')}
+          >
+            Lesson Plan
+          </Button>
+          <Button 
+            variant={mode === 'worksheet' ? 'rainbow' : 'rainbow-text'}
+            size="default"
+            className="transition-all duration-200"
+            onClick={() => setMode('worksheet')}
+          >
+            Worksheet
+          </Button>
+        </div>
         <Button 
           variant="outline" 
           size="sm"
@@ -348,14 +255,9 @@ Birds  | 16 million
           Sign Out
         </Button>
       </div>
-      {/* 3x3 Grid Layout - With Healthy Padding */}
-      <div className="grid grid-cols-3 grid-rows-3 gap-6 flex-1 min-h-0">
-          {/* Top Row - Left: Placeholder */}
-          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
-            <p className="text-sm">Future feature placeholder</p>
-          </div>
-
-          {/* Top Row - Center: Transcribe Prompt */}
+      {mode === 'lesson-plan' && (
+        <div className="grid grid-cols-3 grid-rows-1 gap-6 flex-1 min-h-0">
+          {/* Transcribe Prompt */}
           <div className={textPaneClasses}>
             <label htmlFor="transcribe-prompt" className="block text-sm font-medium text-gray-700 mb-3">
               Transcribe Prompt
@@ -369,66 +271,7 @@ Birds  | 16 million
             />
           </div>
 
-          {/* Top Row - Right: Placeholder */}
-          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
-            <p className="text-sm">Future feature placeholder</p>
-          </div>
-
-          {/* Middle Row - Left: Drag-and-drop zone */}
-          <div 
-            className={`${uploadPaneClasses} transition-all duration-300 ${
-              dragActive 
-                ? 'border-4 border-blue-500 bg-blue-50 shadow-lg cursor-copy' 
-                : 'border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 cursor-pointer'
-            }`}
-            onDragEnter={handleDrag}
-            onDragLeave={handleDrag}
-            onDragOver={handleDrag}
-            onDrop={handleDrop}
-            onClick={() => document.getElementById('file-upload')?.click()}
-          >
-            <input 
-              id="file-upload"
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={handleFileInputChange}
-            />
-            
-            <div className="text-center p-4">
-              {isProcessing ? (
-                <div className="flex flex-col items-center">
-                  <p className="text-lg font-medium text-blue-600">Processing...</p>
-                  <div className="mt-4 w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-sm text-gray-500 mt-4">This may take a moment</p>
-                </div>
-              ) : fileName ? (
-                <>
-                  <p className="text-lg font-medium text-green-600">File Accepted!</p>
-                  <p className="text-sm text-gray-700 mt-3 break-all">{fileName}</p>
-                  {error && (
-                    <p className="text-red-500 mt-2 text-xs">{error}</p>
-                  )}
-                  <Button 
-                    variant="default"
-                    size="sm"
-                    className="mt-4 text-black"
-                    onClick={resetState}
-                  >
-                    Reset
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-lg font-medium">Upload lesson plan</p>
-                  <p className="text-sm text-gray-500 mt-3">Drag & drop your PDF file here</p>
-                  <p className="text-xs text-gray-500 mt-2">or click to browse</p>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Middle Row - Center: Lesson Plan Prompt */}
+          {/* Lesson Plan Prompt */}
           <div className={textPaneClasses}>
             <label htmlFor="lesson-plan-prompt" className="block text-sm font-medium text-gray-700 mb-3">
               Lesson Plan Prompt
@@ -442,7 +285,7 @@ Birds  | 16 million
             />
           </div>
 
-          {/* Middle Row - Right: Markdown Lesson Plan */}
+          {/* Lesson Plan Generator */}
           <div className={textPaneClasses}>
             <div className="flex flex-col h-[calc(100%-9rem)] mb-4 w-full">
               <input
@@ -501,13 +344,12 @@ Birds  | 16 million
               )}
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Bottom Row - Left: Placeholder */}
-          <div className={`${gridPaneClasses} p-6 flex items-center justify-center text-gray-400`}>
-            <p className="text-sm">Future feature placeholder</p>
-          </div>
-
-          {/* Bottom Row - Center: Worksheet Prompt */}
+      {mode === 'worksheet' && (
+        <div className="grid grid-cols-[1fr_2fr] grid-rows-2 gap-6 flex-1 min-h-0">
+          {/* Worksheet Prompt - Top Left */}
           <div className={textPaneClasses}>
             <label htmlFor="worksheet-prompt" className="block text-sm font-medium text-gray-700 mb-3">
               Worksheet Prompt
@@ -521,7 +363,24 @@ Birds  | 16 million
             />
           </div>
 
-          {/* Bottom Row - Right: HTML+CSS Worksheet */}
+          {/* Live Preview - Spans entire right column */}
+          <div className={`${gridPaneClasses} row-span-2`}>
+            <div className="h-full flex flex-col">
+              <div className="p-3 border-b border-gray-200 flex-shrink-0">
+                <h3 className="text-sm font-medium text-gray-700">Live Preview</h3>
+              </div>
+              <div className="flex-1 overflow-auto">
+                <iframe
+                  srcDoc={htmlCssWorksheet}
+                  className="w-full h-full border-0"
+                  sandbox="allow-same-origin"
+                  title="Worksheet Preview"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* HTML+CSS Generator - Bottom Left */}
           <div className={textPaneClasses}>
             <div className="flex flex-col h-[calc(100%-4rem)] mb-4 w-full">
               <input
@@ -566,6 +425,7 @@ Birds  | 16 million
             </div>
           </div>
         </div>
+      )}
     </div>
   )
 }
