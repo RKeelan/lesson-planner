@@ -22,6 +22,7 @@ Follow these specific instructions for the conversion:
 	- Do not summarize content from the lesson plan unless explicitly directed to do so. Just translate the material and format it for a slide.
 3. **Formatting:** You MUST use the specific markdown syntax provided below. Adhere to it strictly.
 	- DO NOT include a markdown code fence
+	- Only use subheadings for first title slide
 
 ---
 

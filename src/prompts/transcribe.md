@@ -15,7 +15,7 @@ Transcribe the text from the three images provided.
 * Use bold text (`**text**`) for bolded words.
 * Use emphassi text (`_text_`) for italicized words.
 * Do not preserve formatting from the original document that is solely due to the paged nature of the original document, such as borders, horizontal rules, or page breaks.
-* Do not surround the markdown with a markdown code fence
+* NEVER use markdown code fences
 
 3. **Images, Charts, and Tables:** When you encounter any non-textual element (like a photograph, a word cloud, a diagram, or a chart/table), you **must** replace it with a descriptive caption using this exact format, including the blank line above and before the caption:
 
