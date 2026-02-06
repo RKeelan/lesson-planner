@@ -54,7 +54,7 @@
     "@types/debug": "^4.1.12",
     "@types/extend": "^3.0.4",
     "@types/form-data": "^2.5.2",
-    "@types/html2canvas": "^0.5.35",
+    "@types/html2canvas": "^1.0.0",
     "@types/lodash": "^4.17.16",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.3",
