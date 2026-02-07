@@ -18,7 +18,8 @@ import { getAccessToken } from '../googleAuth'
 import SlideGenerator from '../../md2gslides/slide_generator'
 
 const mockGetAccessToken = vi.mocked(getAccessToken)
-const mockSlideGenerator = vi.mocked(SlideGenerator)
+const mockNewPresentation = vi.mocked(SlideGenerator.newPresentation)
+const mockCopyPresentation = vi.mocked(SlideGenerator.copyPresentation)
 
 // Create a mock function for generateFromMarkdown
 const mockGenerateFromMarkdown = vi.fn()
@@ -52,13 +53,13 @@ describe('slidesService', () => {
 
     it('should generate slides without template', async () => {
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(testMarkdown)
 
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(mockGenerateFromMarkdown).toHaveBeenCalledWith(testMarkdown)
       expect(result).toBe(testPresentationId)
     })
@@ -67,13 +68,13 @@ describe('slidesService', () => {
       const templateId = 'template-123'
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.copyPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockCopyPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(testMarkdown, templateId)
 
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.copyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
+      expect(mockCopyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
       expect(mockGenerateFromMarkdown).toHaveBeenCalledWith(testMarkdown)
       expect(result).toBe(testPresentationId)
     })
@@ -83,15 +84,15 @@ describe('slidesService', () => {
       const copyError = new Error('Drive permissions required')
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.copyPresentation.mockRejectedValue(copyError)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockCopyPresentation.mockRejectedValue(copyError)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(testMarkdown, templateId)
 
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.copyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockCopyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(mockGenerateFromMarkdown).toHaveBeenCalledWith(testMarkdown)
       expect(console.warn).toHaveBeenCalledWith(
         'Could not copy presentation template (missing Drive permissions). Creating new presentation instead.'
@@ -107,8 +108,8 @@ describe('slidesService', () => {
       await expect(generateSlides(testMarkdown)).rejects.toThrow('Authentication failed')
       
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.newPresentation).not.toHaveBeenCalled()
-      expect(mockSlideGenerator.copyPresentation).not.toHaveBeenCalled()
+      expect(mockNewPresentation).not.toHaveBeenCalled()
+      expect(mockCopyPresentation).not.toHaveBeenCalled()
       expect(console.error).toHaveBeenCalledWith('Error generating slides:', authError)
     })
 
@@ -116,12 +117,12 @@ describe('slidesService', () => {
       const presentationError = new Error('Failed to create presentation')
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockRejectedValue(presentationError)
+      mockNewPresentation.mockRejectedValue(presentationError)
 
       await expect(generateSlides(testMarkdown)).rejects.toThrow('Failed to create presentation')
       
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(console.error).toHaveBeenCalledWith('Error generating slides:', presentationError)
     })
 
@@ -129,13 +130,13 @@ describe('slidesService', () => {
       const markdownError = new Error('Failed to generate from markdown')
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockRejectedValue(markdownError)
 
       await expect(generateSlides(testMarkdown)).rejects.toThrow('Failed to generate from markdown')
       
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(mockGenerateFromMarkdown).toHaveBeenCalledWith(testMarkdown)
       expect(console.error).toHaveBeenCalledWith('Error generating slides:', markdownError)
     })
@@ -146,14 +147,14 @@ describe('slidesService', () => {
       const newPresentationError = new Error('Failed to create new presentation')
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.copyPresentation.mockRejectedValue(copyError)
-      mockSlideGenerator.newPresentation.mockRejectedValue(newPresentationError)
+      mockCopyPresentation.mockRejectedValue(copyError)
+      mockNewPresentation.mockRejectedValue(newPresentationError)
 
       await expect(generateSlides(testMarkdown, templateId)).rejects.toThrow('Failed to create new presentation')
       
       expect(mockGetAccessToken).toHaveBeenCalledOnce()
-      expect(mockSlideGenerator.copyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockCopyPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan', templateId)
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(console.warn).toHaveBeenCalledWith(
         'Could not copy presentation template (missing Drive permissions). Creating new presentation instead.'
       )
@@ -164,7 +165,7 @@ describe('slidesService', () => {
       const emptyMarkdown = ''
       
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(emptyMarkdown)
@@ -175,25 +176,25 @@ describe('slidesService', () => {
 
     it('should handle undefined template ID', async () => {
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(testMarkdown, undefined)
 
-      expect(mockSlideGenerator.copyPresentation).not.toHaveBeenCalled()
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockCopyPresentation).not.toHaveBeenCalled()
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(result).toBe(testPresentationId)
     })
 
     it('should handle empty string template ID', async () => {
       mockGetAccessToken.mockResolvedValue(testToken)
-      mockSlideGenerator.newPresentation.mockResolvedValue(mockGeneratorInstance)
+      mockNewPresentation.mockResolvedValue(mockGeneratorInstance)
       mockGenerateFromMarkdown.mockResolvedValue(testPresentationId)
 
       const result = await generateSlides(testMarkdown, '')
 
-      expect(mockSlideGenerator.copyPresentation).not.toHaveBeenCalled()
-      expect(mockSlideGenerator.newPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
+      expect(mockCopyPresentation).not.toHaveBeenCalled()
+      expect(mockNewPresentation).toHaveBeenCalledWith(testToken, 'Lesson Plan')
       expect(result).toBe(testPresentationId)
     })
   })
