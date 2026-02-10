@@ -21,7 +21,7 @@
     "@adobe/css-tools": "^4.4.2",
     "@radix-ui/react-slot": "^1.2.2",
     "@tailwindcss/postcss": "^4.1.18",
-    "@tailwindcss/vite": "^4.1.5",
+    "@tailwindcss/vite": "^4.1.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "extend": "^3.0.2",
