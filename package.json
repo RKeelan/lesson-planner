@@ -60,7 +60,7 @@
     "@types/node": "^22.15.3",
     "@types/parse-color": "^1.0.3",
     "@types/parse5": "^7.0.0",
-    "@types/react": "^19.0.10",
+    "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^5.1.3",
