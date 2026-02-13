@@ -26,7 +26,7 @@
     "clsx": "^2.1.1",
     "extend": "^3.0.2",
     "file-url": "^4.0.0",
-    "form-data": "^4.0.2",
+    "form-data": "^4.0.5",
     "googleapis": "^171.4.0",
     "html2canvas": "^1.4.1",
     "lodash": "^4.17.21",
