@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+interface TokenResponse {
+  access_token?: string
+  expires_in?: number
+  scope?: string
+  token_type?: string
+  error?: string
+}
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -13,7 +21,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock Google Identity Services
 const mockTokenClient = {
-  callback: null as ((response: any) => void) | null,
+  callback: null as ((response: TokenResponse) => void) | null,
   requestAccessToken: vi.fn()
 }
 
@@ -24,8 +32,12 @@ const mockGoogleAccounts = {
   }
 }
 
+type GoogleAccounts = typeof mockGoogleAccounts
+type WindowWithGoogle = Window & { google?: { accounts: GoogleAccounts } }
+const windowWithGoogle = window as WindowWithGoogle
+
 // Store original window.google value
-let originalGoogle: any
+let originalGoogle: WindowWithGoogle['google']
 
 describe('googleAuth', () => {
   beforeEach(async () => {
@@ -34,8 +46,8 @@ describe('googleAuth', () => {
     mockTokenClient.callback = null
     
     // Store original value and reset window.google
-    originalGoogle = (window as any).google
-    ;(window as any).google = undefined
+    originalGoogle = windowWithGoogle.google
+    windowWithGoogle.google = undefined
     
     // Clear module cache to reset module state
     vi.resetModules()
@@ -46,14 +58,14 @@ describe('googleAuth', () => {
 
   afterEach(() => {
     // Restore original value
-    ;(window as any).google = originalGoogle
+    windowWithGoogle.google = originalGoogle
     vi.unstubAllEnvs()
   })
 
   describe('initGoogleAuth', () => {
     it('should initialize Google Auth when Google Identity Services is available', async () => {
       // Set up Google Identity Services
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -80,7 +92,7 @@ describe('googleAuth', () => {
       
       localStorageMock.getItem.mockReturnValue(JSON.stringify(cachedToken))
       
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -102,7 +114,7 @@ describe('googleAuth', () => {
       
       localStorageMock.getItem.mockReturnValue(JSON.stringify(expiredToken))
       
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -115,7 +127,7 @@ describe('googleAuth', () => {
     it('should handle invalid cached token JSON', async () => {
       localStorageMock.getItem.mockReturnValue('invalid-json')
       
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -133,7 +145,7 @@ describe('googleAuth', () => {
       
       // Add Google Identity Services after a delay
       setTimeout(() => {
-        ;(window as any).google = {
+    windowWithGoogle.google = {
           accounts: mockGoogleAccounts
         }
       }, 50)
@@ -157,7 +169,7 @@ describe('googleAuth', () => {
       
       localStorageMock.getItem.mockReturnValue(JSON.stringify(cachedToken))
       
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -168,7 +180,7 @@ describe('googleAuth', () => {
     })
 
     it('should request new token if no cached token available', async () => {
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -199,7 +211,7 @@ describe('googleAuth', () => {
     })
 
     it('should handle auth errors', async () => {
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -222,7 +234,7 @@ describe('googleAuth', () => {
     })
 
     it('should handle missing access token in response', async () => {
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 
@@ -259,7 +271,7 @@ describe('googleAuth', () => {
 
   describe('signOut', () => {
     it('should clear stored token and revoke access', async () => {
-      ;(window as any).google = {
+    windowWithGoogle.google = {
         accounts: mockGoogleAccounts
       }
 

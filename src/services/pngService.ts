@@ -56,7 +56,7 @@ async function detectHTMLOrientation(htmlContent: string): Promise<{ isLandscape
       width: width || BASE_CANVAS_WIDTH,
       height: height || BASE_CANVAS_HEIGHT
     }
-  } catch (error) {
+  } catch (_error) {
     document.body.removeChild(detectionIframe)
     return {
       isLandscape: false,
@@ -183,7 +183,7 @@ export async function generatePNGFromHTML(htmlContent: string, filename: string 
       scale: 1,
       x: 0,
       y: 0
-    } as any)
+    })
     
     // Remove the temporary iframe
     document.body.removeChild(iframe)

@@ -13,20 +13,10 @@
 // limitations under the License.
 
 import markdownIt from 'markdown-it';
-// @ts-ignore
-import Token from 'markdown-it/lib/token';
-// @ts-ignore
 import attrs from 'markdown-it-attrs';
-// @ts-ignore
 import lazyHeaders from 'markdown-it-lazy-headers';
-// @ts-ignore
 import emoji from 'markdown-it-emoji';
-// @ts-ignore
 import expandTabs from 'markdown-it-expand-tabs';
-// @ts-ignore
-import video from 'markdown-it-video';
-// @ts-ignore
-import customFence from 'markdown-it-fence';
 
 const mdOptions = {
   html: true,
@@ -41,7 +31,7 @@ const parser = markdownIt(mdOptions)
   .use(emoji, {shortcuts: {}})
   .use(expandTabs, {tabWidth: 4})
 
-function parseMarkdown(markdown: string): Token[] {
+function parseMarkdown(markdown: string): ReturnType<typeof parser.parse> {
   return parser.parse(markdown, {});
 }
 

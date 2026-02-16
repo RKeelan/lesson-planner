@@ -15,6 +15,22 @@ const mockPyodideInstance = {
 
 const mockLoadPyodide = vi.fn()
 
+interface PyodideLike {
+  runPythonAsync: (code: string) => Promise<string>
+  loadPackage: (pkg: string) => Promise<void>
+  FS: {
+    writeFile: (path: string, data: Uint8Array) => void
+  }
+}
+
+interface ConvertMessageData {
+  type?: string
+  command?: string
+  file?: {
+    arrayBuffer: () => Promise<ArrayBuffer>
+  }
+}
+
 // Mock the global self object for worker environment
 Object.defineProperty(globalThis, 'self', {
   value: {
@@ -138,8 +154,11 @@ describe('pdfWorker', () => {
       pyodideInstance = mockPyodideInstance
     })
 
-    const simulateMessageHandler = async (event: { data: any }) => {
-      const data = event.data
+    const simulateMessageHandler = async (event: { data: unknown }) => {
+      if (!event.data || typeof event.data !== 'object') {
+        return
+      }
+      const data = event.data as ConvertMessageData
 
       if (data.command === 'reload-pyodide') {
         pyodideInstance = null
@@ -334,7 +353,7 @@ describe('pdfWorker', () => {
 
   describe('convertPdfToMarkdown functionality', () => {
     it('should throw error when Pyodide is not initialized', async () => {
-      const convertPdfToMarkdown = async (arrayBuffer: ArrayBuffer, pyodideInstance: any) => {
+      const convertPdfToMarkdown = async (arrayBuffer: ArrayBuffer, pyodideInstance: PyodideLike | null) => {
         if (!pyodideInstance) {
           throw new Error('Pyodide is not initialized')
         }
@@ -356,7 +375,7 @@ describe('pdfWorker', () => {
     })
 
     it('should successfully convert PDF to markdown', async () => {
-      const convertPdfToMarkdown = async (arrayBuffer: ArrayBuffer, pyodideInstance: any) => {
+      const convertPdfToMarkdown = async (arrayBuffer: ArrayBuffer, pyodideInstance: PyodideLike) => {
         pyodideInstance.FS.writeFile('/tmp/doc.pdf', new Uint8Array(arrayBuffer))
         
         const result = await pyodideInstance.runPythonAsync(`

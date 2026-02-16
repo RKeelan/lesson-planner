@@ -15,8 +15,6 @@
 import Debug from 'debug';
 import {uuid} from '../utils';
 import extend from 'extend';
-// @ts-ignore
-import Layout from 'layout';
 import * as _ from 'lodash';
 import {slides_v1 as SlidesV1} from 'googleapis';
 import {
@@ -329,7 +327,7 @@ export default class GenericLayout {
     };
   }
 
-  protected computeShallowFieldMask<T extends Record<string, any>>(object: T): string {
+  protected computeShallowFieldMask<T extends Record<string, unknown>>(object: T): string {
     const fields = [];
     for (const field of Object.keys(object)) {
       if (object[field as keyof T] !== undefined) {
