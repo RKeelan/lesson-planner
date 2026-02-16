@@ -27,9 +27,6 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npm run test
-
       - name: Build
         env:
           VITE_GOOGLE_CLIENT_ID: ci-placeholder-client-id

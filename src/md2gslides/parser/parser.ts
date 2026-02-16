@@ -15,7 +15,7 @@
 import markdownIt from 'markdown-it';
 import attrs from 'markdown-it-attrs';
 import lazyHeaders from 'markdown-it-lazy-headers';
-import emoji from 'markdown-it-emoji';
+import {full as emoji} from 'markdown-it-emoji';
 import expandTabs from 'markdown-it-expand-tabs';
 
 const mdOptions = {
