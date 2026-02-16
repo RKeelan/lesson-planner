@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import parseMarkdown from './parser'
 
+type AttrPair = [string, string]
+
 describe('markdown parser', () => {
   it('should parse simple text', () => {
     const tokens = parseMarkdown('Hello world')
@@ -94,7 +96,7 @@ describe('markdown parser', () => {
     const headingOpen = tokens.find(t => t.type === 'heading_open')
     expect(headingOpen?.attrs).toBeDefined()
     
-    const classAttr = headingOpen?.attrs?.find((attr: any) => attr[0] === 'class')
+    const classAttr = headingOpen?.attrs?.find((attr: AttrPair) => attr[0] === 'class')
     expect(classAttr?.[1]).toBe('big')
   })
 
@@ -112,7 +114,7 @@ describe('markdown parser', () => {
     const inline = tokens.find(t => t.type === 'inline')
     expect(inline?.children).toBeDefined()
     
-    const htmlInline = inline?.children?.find((t: any) => t.type === 'html_inline')
+    const htmlInline = inline?.children?.find((t) => t.type === 'html_inline')
     expect(htmlInline).toBeDefined()
   })
 
@@ -136,7 +138,7 @@ function hello() {
     const tokens = parseMarkdown('Use `console.log()` to print')
     
     const inline = tokens.find(t => t.type === 'inline')
-    const codeInline = inline?.children?.find((t: any) => t.type === 'code_inline')
+    const codeInline = inline?.children?.find((t) => t.type === 'code_inline')
     
     expect(codeInline).toBeDefined()
     expect(codeInline?.content).toBe('console.log()')
@@ -146,7 +148,7 @@ function hello() {
     const tokens = parseMarkdown('Hello :heart: world')
     
     const inline = tokens.find(t => t.type === 'inline')
-    const emoji = inline?.children?.find((t: any) => t.type === 'emoji')
+    const emoji = inline?.children?.find((t) => t.type === 'emoji')
     
     expect(emoji).toBeDefined()
   })

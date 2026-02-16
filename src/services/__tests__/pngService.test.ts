@@ -55,17 +55,17 @@ describe('pngService', () => {
     const originalCreateElement = document.createElement.bind(document)
     vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
       if (tagName === 'iframe') {
-        return mockIframe as any
+        return mockIframe as unknown as HTMLIFrameElement
       }
       if (tagName === 'a') {
-        return mockAnchor as any
+        return mockAnchor as unknown as HTMLAnchorElement
       }
       return originalCreateElement(tagName)
     })
     
     // Mock document.body.appendChild and removeChild
-    vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockIframe as any)
-    vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockIframe as any)
+    vi.spyOn(document.body, 'appendChild').mockImplementation(() => mockIframe as unknown as Node)
+    vi.spyOn(document.body, 'removeChild').mockImplementation(() => mockIframe as unknown as Node)
     
     // Mock console methods
     console.log = vi.fn()
@@ -212,10 +212,10 @@ describe('pngService', () => {
       const originalCreateElement = document.createElement.bind(document)
       vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
         if (tagName === 'iframe') {
-          return mockIframeWithFontError as any
+          return mockIframeWithFontError as unknown as HTMLIFrameElement
         }
         if (tagName === 'a') {
-          return mockAnchor as any
+          return mockAnchor as unknown as HTMLAnchorElement
         }
         return originalCreateElement(tagName)
       })
