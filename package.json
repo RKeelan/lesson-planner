@@ -30,7 +30,7 @@
     "googleapis": "^171.4.0",
     "html2canvas": "^1.4.1",
     "lodash": "^4.17.23",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "^0.576.0",
     "markdown-it": "^14.1.1",
     "markdown-it-attrs": "^4.1.4",
     "markdown-it-emoji": "^3.0.0",
